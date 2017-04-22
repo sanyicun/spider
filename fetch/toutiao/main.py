@@ -116,8 +116,14 @@ class Extractor():
 base_url="http://www.toutiao.com/api/pc/feed/";
 url=base_url+'?'+urllib.urlencode(params)
 
+cp=ConfigParser.SafeConfigParser()
+cp.read('env.config')
+HOST=str(cp.get("database","host"))
+USERNAME=str(cp.get("database","username"))
+PASSWORD=str(cp.get("database","password"))
+DBNAME=str(cp.get("database","dbname"))
 
-db=MySQLdb.connect('127.0.0.1','root','hello1234','spider')
+db=MySQLdb.connect(HOST,USERNAME,PASSWORD,DBNAME)
 db.set_character_set('utf8')
 
 cursor=db.cursor()
@@ -155,7 +161,7 @@ while True:
 		tags=''
 		if data[i].has_key('chinese_tag') and data[i]['tag_url']!='video' and data[i]['more_mode']==True:
 			if data[i]['chinese_tag']!= None:
-				print data[i]['chinese_tag']
+				#print data[i]['chinese_tag']
 				classify=urllib.urlencode(data[i]['chinese_tag'])
 				#print type(classify)
 			if data[i].has_key('title'):
@@ -163,8 +169,8 @@ while True:
 				#title=data[i]['title'].decode('gbk','ignore').encode('utf-8','ignore')
 				#print type(title)
 				title=urllib.urlencode(data[i]['title'])
-				print type(title) 
-				print title
+				#print type(title) 
+				#print title
 			if data[i].has_key('source'):
 				source=urllib.urlencode(data[i]['source'])
 				#print source
@@ -174,7 +180,7 @@ while True:
 			if data[i].has_key('source_url'):
 				if data[i]['source_url'].startswith('/group'):
 					temp_url="http://www.toutiao.com"+data[i]['source_url']
-					print temp_url
+					#print temp_url
 			if data[i].has_key('article_genre'):
 				article_genre=data[i]['article_genre']
 			if temp_url!=' ' and article_genre=='article':
@@ -183,10 +189,10 @@ while True:
 					r.encoding='utf-8'
 				except:
 					continue
-				print r.status_code
+				#print r.status_code
 				info=chardet.detect(r.content).get('encoding','utf-8')
 				html=r.content.decode(info,'ignore').encode('utf-8')
-				print type(html)
+				#print type(html)
 				temp=Selector(text=html).xpath(".//*[@id='article-main']/h1/text()").extract()
 				if len(temp)!=0:
 					title=temp[0]
@@ -201,9 +207,9 @@ while True:
 						for i in range(0,len(news_tag)):
 							tags=tags+news_tag[i]+","
 							sql_temp="select * from tag where tag='%s'"%(news_tag[i])
-							print sql_temp
+							#print sql_temp
 							temp=cursor.execute(sql_temp)
-							print type(temp)
+							#print type(temp)
 							if temp==0:
 								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tag',news_tag[i],1))
 							elif temp!=0:
@@ -216,7 +222,7 @@ while True:
 					sel=Selector(text=html).xpath(".//*[@id='article-main']/div[2]").extract()
 					if len(sel)!=0:
 						for i in range(len(sel)):
-							print sel[i]
+							#print sel[i]
 							news_origin+=sel[i]
 						news_origin=urllib.urlencode(news_origin)
 					news_tag=Selector(text=html).xpath(".//*[@id='article-main']/div[3]/div[1]/ul/li/a/text()").extract()
@@ -224,9 +230,9 @@ while True:
 						for i in range(0,len(news_tag)):
 							tags=tags+news_tag[i]+","
 							sql_temp="select * from tag where tag='%s'"%(news_tag[i])
-							print sql_temp
+							#print sql_temp
 							temp=cursor.execute(sql_temp)
-							print type(temp)
+							#print type(temp)
 							if temp==0:
 								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tag',news_tag[i],1))
 							elif temp!=0:
@@ -237,7 +243,7 @@ while True:
 					elif len(sel)==0:
 						continue
 				news_content=Extractor(temp_url,blockSize=3, timeout=5, image=True)
-				print news_content.getContext()
+				#print news_content.getContext()
 				news_content=urllib.urlencode(news_content.getContext())
 			
 
