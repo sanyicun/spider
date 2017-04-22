@@ -133,7 +133,7 @@ cursor.execute('SET CHARACTER SET utf8;')
 cursor.execute('SET character_set_connection=utf8;')
 cursor.execute("SET collation_connection = utf8_general_ci")
 sql="""
-	insert into news(keyword,title,abstract,content,source,tag,class,datetime) values('1111','11111','11111','11111','111111','111111','11111',1111)
+	insert into articles(keyword,title,abstract,content,source,tag,class,datetime) values('1111','11111','11111','11111','111111','111111','11111',1111)
 
 """
 #cursor.execute(sql)
@@ -149,7 +149,7 @@ while True:
 	#print type(data)
 	#print len(data)
 	for i in range(0,len(data)):
-		print data[i]
+		if DBUG: print data[i]
 		temp_url=' '
 		article_genre=''
 		title=''
@@ -163,21 +163,21 @@ while True:
 		if data[i].has_key('chinese_tag') and data[i]['tag_url']!='video' and data[i]['more_mode']==True:
 			if data[i]['chinese_tag']!= None:
 				#print data[i]['chinese_tag']
-				classify=urllib.urlencode(data[i]['chinese_tag'])
+				classify=data[i]['chinese_tag']#urllib.quote(data[i]['chinese_tag'])
 				#print type(classify)
 			if data[i].has_key('title'):
 				#print type(data[i]['title'])
-				#title=data[i]['title'].decode('gbk','ignore').encode('utf-8','ignore')
+				title=data[i]['title']#.decode('gbk','ignore').encode('utf-8','ignore')
 				#print type(title)
-				title=urllib.urlencode(data[i]['title'])
+				#title=data[i]['title']#urllib.quote(data[i]['title'])
 				#print type(title) 
 				#print title
 			if data[i].has_key('source'):
-				source=urllib.urlencode(data[i]['source'])
+				source=data[i]['source']#.decode('gbk','ignore').encode('utf-8','ignore')#urllib.quote(data[i]['source'])
 				#print source
 			if data[i].has_key('abstract'):
 
-				abstract=urllib.urlencode(data[i]['abstract'])
+				abstract=data[i]['abstract']#.decode('gbk','ignore').encode('utf-8','ignore')#urllib.quote(data[i]['abstract'])
 			if data[i].has_key('source_url'):
 				if data[i]['source_url'].startswith('/group'):
 					temp_url="http://www.toutiao.com"+data[i]['source_url']
@@ -202,21 +202,22 @@ while True:
 					for i in range(len(sel)):
 						#print sel[i]
 						news_origin+=sel[i]
-					news_origin=urllib.urlencode(news_origin)
+					#news_origin=news_origin#.decode('gbk','ignore').encode('utf-8','ignore')#urllib.quote(news_origin)
 					news_tag=Selector(text=html).xpath(".//*[@id='article-main']/div[3]/div[1]/ul/li/a/text()").extract()
 					if len(news_tag)!=0:
 						for i in range(0,len(news_tag)):
 							tags=tags+news_tag[i]+","
-							sql_temp="select * from tag where tag='%s'"%(news_tag[i])
+							#print news_tag
+							sql_temp="select * from tags where tag='%s'"%(news_tag[i])
 							#print sql_temp
 							temp=cursor.execute(sql_temp)
-							#print type(temp)
+							#print type(temp), temp
 							if temp==0:
-								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tag',news_tag[i],1))
+								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tags',news_tag[i],1))
 							elif temp!=0:
 								tag_data=cursor.fetchone()
-								tag_frequency=int(tag_data[1])+1
-								cursor.execute("update  %s  set frequency='%d' where tag='%s'"%('tag',tag_frequency,news_tag[i]))	
+								tag_frequency=int(tag_data[2])+1
+								cursor.execute("update  %s  set frequency='%d' where tag='%s'"%('tags',tag_frequency,news_tag[i]))	
 						
 				elif len(sel)==0:
 
@@ -225,27 +226,28 @@ while True:
 						for i in range(len(sel)):
 							#print sel[i]
 							news_origin+=sel[i]
-						news_origin=urllib.urlencode(news_origin)
+						#news_origin=news_origin.decode('gbk','ignore').encode('utf-8','ignore')#urllib.quote(news_origin)
 					news_tag=Selector(text=html).xpath(".//*[@id='article-main']/div[3]/div[1]/ul/li/a/text()").extract()
 					if len(news_tag)!=0:
 						for i in range(0,len(news_tag)):
 							tags=tags+news_tag[i]+","
-							sql_temp="select * from tag where tag='%s'"%(news_tag[i])
+							sql_temp="select * from tags where tag='%s'"%(news_tag[i])
 							#print sql_temp
 							temp=cursor.execute(sql_temp)
 							#print type(temp)
 							if temp==0:
-								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tag',news_tag[i],1))
+								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tags',news_tag[i],1))
 							elif temp!=0:
 								tag_data=cursor.fetchone()
 								tag_frequency=int(tag_data[1])+1
-								cursor.execute("update  %s  set frequency='%d' where tag='%s'"%('tag',tag_frequency,news_tag[i]))
+								cursor.execute("update  %s  set frequency='%d' where tag='%s'"%('tags',tag_frequency,news_tag[i]))
 						
 					elif len(sel)==0:
 						continue
 				news_content=Extractor(temp_url,blockSize=3, timeout=5, image=True)
-				#print news_content.getContext()
-				news_content=urllib.urlencode(news_content.getContext())
+				if DBUG: print news_content.getContext()
+				#news_content=news_content.getContext().decode('gbk','ignore').encode('utf-8','ignore')#urllib.quote(news_content.getContext())
+				news_content=news_content.getContext()#urllib.quote(news_content.getContext())
 			
 
 		if len(title)!=0 and len(news_content)!=0 and len(news_origin)!=0:
@@ -253,7 +255,7 @@ while True:
 			
 			#print type(abstract)
 			#print "hehehe"
-			sql="insert into %s (keyword,title,abstract,news_origin,news_content,source,tag,classify,datetime,news_tag)values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%('news',' ',title,abstract,news_origin,news_content,source,' ',classify,datetime,tags)
+			sql="insert into %s (keyword,title,abstract,news_origin,news_content,source,tag,classify,datetime,news_tag)values('%s','%s','%s','%s','%s','%s','%s','%s','%s','%s')"%('articles',' ',title,abstract,news_origin,news_content,source,' ',classify,datetime,tags)
 			cursor.execute(sql)
 			db.commit()	
 		time.sleep(1)					
