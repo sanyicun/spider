@@ -239,7 +239,7 @@ while True:
 								cursor.execute("insert into %s (tag,frequency) values('%s','%d')"%('tags',news_tag[i],1))
 							elif temp!=0:
 								tag_data=cursor.fetchone()
-								tag_frequency=int(tag_data[1])+1
+								tag_frequency=int(tag_data[2])+1
 								cursor.execute("update  %s  set frequency='%d' where tag='%s'"%('tags',tag_frequency,news_tag[i]))
 						
 					elif len(sel)==0:
