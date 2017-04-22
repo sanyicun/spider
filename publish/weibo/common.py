@@ -100,7 +100,7 @@ def get_code(username, pwd, cookie_file):
            "Content-Type": "application/x-www-form-urlencoded"}  
     post_url='https://api.weibo.com/oauth2/authorize'  
     get_code_url=requests.post(post_url,data=fields,headers=headers)
-    #print get_code_url.url
+    print get_code_url.url
     code=get_code_url.url.split('=')[1]
     print code
     return code

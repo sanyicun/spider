@@ -13,7 +13,7 @@ import codecs
 from textrank4zh import TextRank4Keyword, TextRank4Sentence
 reload(sys)
 sys.setdefaultencoding('utf-8')
-db=MySQLdb.connect('127.0.0.1','root','hello1234','spider')
+db=MySQLdb.connect('127.0.0.1','root','hello1234','ai')
 print db
 db.set_character_set('utf8')
 cursor=db.cursor()
@@ -23,7 +23,7 @@ cursor.execute('SET character_set_connection=utf8;')
 
 def publish():  
 	#sql="select * from news where title like '"+"%"+"%s"%(talk)+"%'"
-	sql="select news_content from news order by id desc limit 1"
+	sql="select news_content from articles order by id desc limit 1"
 	print sql 
 	#print  type(sql.decode('utf-8','ignore').encode('utf-8'))
 	#sql=sql.decode('utf-8','ignore').encode('utf-8')
