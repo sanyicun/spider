@@ -55,7 +55,7 @@ sql_tags="""create table tags(
 sql_publish = """create table publish(
         id  int AUTO_INCREMENT PRIMARY KEY NOT NULL , 
 	docid int,
-	int pub_platform,
+	pub_platform int,
 	title text,
 	content text,
 	datetime text
@@ -68,3 +68,4 @@ cursor.execute(sql_tags)
 cursor.execute(sql_publish)
 #db.commit()
 db.close()
+print "Success !"
