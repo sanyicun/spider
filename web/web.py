@@ -10,12 +10,20 @@ define('port',default=8999,help='run on the port',type=int)
 import MySQLdb
 import urllib
 import sys
+import ConfigParser
 
 
 reload(sys)
 sys.setdefaultencoding('utf-8')
-db=MySQLdb.connect('127.0.0.1','root','hello1234','spider')
-print db
+
+cp=ConfigParser.SafeConfigParser()
+cp.read('../config/env.config')
+HOST=str(cp.get("database","host"))
+USERNAME=str(cp.get("database","username"))
+PASSWORD=str(cp.get("database","password"))
+DBNAME=str(cp.get("database","dbname"))
+
+db=MySQLdb.connect(HOST,USERNAME,PASSWORD,DBNAME)
 db.set_character_set('utf8')
 cursor=db.cursor()
 cursor.execute('SET NAMES utf8;')
@@ -31,13 +39,13 @@ class MainHandler(tornado.web.RequestHandler):
         print(self.request.remote_ip)  
         talk=self.get_argument('talk')  
         print type(talk)
-	sql="select * from news where title like '"+"%"+"%s"%(talk)+"%'"
+	sql="select * from articles where title like '"+"%"+"%s"%(talk)+"%'"
 	print sql 
 	#print  type(sql.decode('utf-8','ignore').encode('utf-8'))
 	#sql=sql.decode('utf-8','ignore').encode('utf-8')
 	cursor.execute(sql)
 	data=cursor.fetchone()
-	print data
+	#print data
 	print talk  
         l.append(talk)
 	
