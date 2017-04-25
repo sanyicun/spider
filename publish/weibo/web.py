@@ -2,7 +2,7 @@
 #coding:utf-8 
 import tornado.web  
 import tornado.ioloop
-from  common import   sinaWeiBo
+import common
 from tornado.options import define,options,parse_command_line  
  
 define('port',default=10000,help='run on the port',type=int)  
@@ -25,10 +25,11 @@ sys.setdefaultencoding('utf-8')
 #cursor.execute('SET character_set_connection=utf8;')
 
 l=[]
-test=sinaWeiBo()  
+wb=common.WeiboAPI()  
 class MainHandler(tornado.web.RequestHandler):  
     def get(self):  
         self.render('index.html',title='homepage',items=l)  
+
     def post(self):  
         count=1  
         print(self.request.remote_ip) 
@@ -48,51 +49,33 @@ class MainHandler(tornado.web.RequestHandler):
             article=urllib.unquote(arg[5])[13:]
 	    a=re.sub("{{(.*?)}}", " ",article)
 	    b=re.findall(r"{{(.*?)}}",article)
-            print "hahahahaha"+str(len(b))
-            for i in range(len(b)):
-                f=requests.get(str(b[i]))
-                file_temp="./news_toutiao_"+str(i)+'.png'
-		print file_temp
-		temp_file=open(file_temp,'w+')
-		temp_file.write(f.content)
-                temp_file.close()		
-		#print a
-            
+	    x=0
+	    imgarr=[]
+	    for i in range(len(b)):
+	    	imgurl=str(b[i])
+		print imgurl
+		x+=1
+		filename='tmp/%s' % imgurl.split('/')[-1]
+		imgarr.append(filename)
+	     	urllib.urlretrieve(imgurl, filename)
+
 	    tr4s = TextRank4Sentence()
 	    tr4s.analyze(text=a, lower=True, source = 'all_filters')
             
-            str1=''		
+            text=''		
 	    print( '摘要：' )
 	    for item in tr4s.get_key_sentences(num=2.5):
     		#print(item.index, item.weight, item.sentence)
-    	        print(item.sentence)
-                str1=str1+item.sentence
-            print str1
-            test.login()
-            test.get_code()
-            #test.send_text(str[0:100])
-            if len(b) > 0:   
-            	test.send_text_pic(str1[0:100],"./news_toutiao_0.png")
-            for i in range(len(b)):
-                file_temp='./news_toutiao_'+str(i)+'.png'
-		os.remove(file_temp)
-        elif self.request.body_arguments.has_key('temp'):
-		article=self.request.body_arguments['temp'][0]
-		
-		a=re.sub("{{(.*?)}}", " ",article)
-		
-		#print a
-		tr4s = TextRank4Sentence()
-		tr4s.analyze(text=a, lower=True, source = 'all_filters')
+		text=text + item.sentence
+	    print text
+	    if len(imgarr) > 0:   
+		txtlen= len(text) if len(text) < 140 else 140
+		wb.send_text_pic(text[0:txtlen], imgarr[0])
+		print "publish OK"
 
+	    else:
+		print "no photo"
 		
-		print( '摘要：' )
-		for item in tr4s.get_key_sentences(num=2.5):
-    		#print(item.index, item.weight, item.sentence)
-    			print(item.sentence)
-        #l.append(talk)
-
-        #self.render('a.html',title='haha',items=l)  
 def main():  
     parse_command_line()  
     app=tornado.web.Application(  
